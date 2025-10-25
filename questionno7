@@ -1,0 +1,71 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+long long comps;
+void swap(int &a,int &b){ int t=a; a=b; b=t;}
+int partitionFirst(int a[],int l,int h){
+    int pivot=a[l];
+    int i=l+1;
+    for(int j=l+1;j<=h;j++){
+        comps++;
+        if(a[j]<pivot){ swap(a[i],a[j]); i++; }
+    }
+    swap(a[l],a[i-1]);
+    return i-1;
+}
+int partitionLast(int a[],int l,int h){
+    int pivot=a[h];
+    int i=l-1;
+    for(int j=l;j<h;j++){
+        comps++;
+        if(a[j]<=pivot){ i++; swap(a[i],a[j]); }
+    }
+    swap(a[i+1],a[h]);
+    return i+1;
+}
+int partitionMiddle(int a[],int l,int h){
+    int mid=(l+h)/2;
+    swap(a[mid],a[h]);
+    return partitionLast(a,l,h);
+}
+int medianOfThreeIndex(int a[],int l,int h){
+    int m=(l+h)/2;
+    int x=a[l], y=a[m], z=a[h];
+    if((x<=y && y<=z) || (z<=y && y<=x)) return m;
+    if((y<=x && x<=z) || (z<=x && x<=y)) return l;
+    return h;
+}
+int partitionMedian(int a[],int l,int h){
+    int idx=medianOfThreeIndex(a,l,h);
+    swap(a[idx],a[h]);
+    return partitionLast(a,l,h);
+}
+void quickFirst(int a[],int l,int h){ if(l<h){ int p=partitionFirst(a,l,h); quickFirst(a,l,p-1); quickFirst(a,p+1,h); }}
+void quickRandom(int a[],int l,int h){ if(l<h){ int idx = l + rand()%(h-l+1); swap(a[idx],a[h]); int p=partitionLast(a,l,h); quickRandom(a,l,p-1); quickRandom(a,p+1,h); }}
+void quickMiddle(int a[],int l,int h){ if(l<h){ int p=partitionMiddle(a,l,h); quickMiddle(a,l,p-1); quickMiddle(a,p+1,h); }}
+void quickMedian(int a[],int l,int h){ if(l<h){ int p=partitionMedian(a,l,h); quickMedian(a,l,p-1); quickMedian(a,p+1,h); }}
+void runTest(int src[],int n){
+    int a[1000];
+    for(int t=0;t<5;t++){
+        for(int i=0;i<n;i++) a[i]=src[i];
+        comps=0; quickFirst(a,0,n-1); cout<<"First pivot comparisons: "<<comps<<"\n";
+        for(int i=0;i<n;i++) a[i]=src[i];
+        comps=0; srand(time(0)); quickRandom(a,0,n-1); cout<<"Random pivot comparisons: "<<comps<<"\n";
+        for(int i=0;i<n;i++) a[i]=src[i];
+        comps=0; quickMiddle(a,0,n-1); cout<<"Middle pivot comparisons: "<<comps<<"\n";
+        for(int i=0;i<n;i++) a[i]=src[i];
+        comps=0; quickMedian(a,0,n-1); cout<<"Median-of-three pivot comparisons: "<<comps<<"\n";
+        cout<<"----\n";
+        break;
+    }
+}
+int main(){
+    int n=20;
+    int sorted[1000], rev[1000], randarr[1000];
+    for(int i=0;i<n;i++){ sorted[i]=i+1; rev[i]=n-i; randarr[i]=rand()%1000; }
+    cout<<"On sorted array:\n"; runTest(sorted,n);
+    cout<<"On reverse-sorted array:\n"; runTest(rev,n);
+    cout<<"On random array:\n"; runTest(randarr,n);
+    return 0;
+}
