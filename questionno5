@@ -1,0 +1,51 @@
+#include <iostream>
+using namespace std;
+struct Node{int data; Node* next;};
+Node* newNode(int d){ Node* p=new Node; p->data=d; p->next=nullptr; return p;}
+Node* lastNode(Node* head){ if(!head) return head; while(head->next) head=head->next; return head;}
+Node* partition(Node* l, Node* h, Node** newHead, Node** newEnd){
+    Node* pivot=h; Node* prev=nullptr; Node* cur=l; Node* tail=pivot;
+    while(cur!=pivot){
+        if(cur->data<pivot->data){
+            if(!*newHead) *newHead=cur;
+            prev=cur;
+            cur=cur->next;
+        } else {
+            if(prev) prev->next=cur->next;
+            Node* tmp=cur->next;
+            cur->next=nullptr;
+            tail->next=cur;
+            tail=cur;
+            cur=tmp;
+        }
+    }
+    if(!*newHead) *newHead=pivot;
+    *newEnd=tail;
+    return pivot;
+}
+Node* quickSortRec(Node* head, Node* end){
+    if(!head || head==end) return head;
+    Node* newHead=nullptr; Node* newEnd=nullptr;
+    Node* pivot=partition(head,end,&newHead,&newEnd);
+    if(newHead!=pivot){
+        Node* t=newHead;
+        while(t->next!=pivot) t=t->next;
+        t->next=nullptr;
+        newHead=quickSortRec(newHead,t);
+        t=lastNode(newHead);
+        t->next=pivot;
+    }
+    pivot->next=quickSortRec(pivot->next,newEnd);
+    return newHead;
+}
+void push(Node*& head,int d){ Node* p=newNode(d); p->next=head; head=p; }
+void printList(Node* head){ while(head){ cout<<head->data<<" "; head=head->next;} cout<<"\n"; }
+int main(){
+    Node* head=nullptr;
+    int arr[]={10,7,8,9,1,5,3};
+    for(int i=0;i<7;i++) push(head,arr[i]);
+    Node* end=lastNode(head);
+    head=quickSortRec(head,end);
+    printList(head);
+    return 0;
+}
