@@ -1,0 +1,87 @@
+#include <iostream>
+#include <string>
+using namespace std;
+struct Node{string name; int score; Node* next;};
+void addNode(Node*& head,const string& n,int s){Node* p=new Node{n,s,nullptr}; if(!head){head=p;return;} Node* t=head; while(t->next) t=t->next; t->next=p;}
+void printList(Node* head){Node* t=head; while(t){cout<<t->name<<" "<<t->score<<"\n"; t=t->next;}}
+int getMaxScore(Node* head){int m=0; while(head){ if(head->score>m) m=head->score; head=head->next;} return m;}
+void radixSortList(Node*& head){
+    if(!head) return;
+    int maxv=getMaxScore(head);
+    int exp=1;
+    while(maxv/exp>0){
+        Node* bucketsHead[10]={0};
+        Node* bucketsTail[10]={0};
+        Node* cur=head;
+        while(cur){
+            int d=(cur->score/exp)%10;
+            Node* next=cur->next;
+            cur->next=nullptr;
+            if(!bucketsHead[d]) bucketsHead[d]=bucketsTail[d]=cur;
+            else {bucketsTail[d]->next=cur; bucketsTail[d]=cur;}
+            cur=next;
+        }
+        head=nullptr;
+        Node* tail=nullptr;
+        for(int i=0;i<10;i++) if(bucketsHead[i]){
+            if(!head){head=bucketsHead[i]; tail=bucketsTail[i];}
+            else {tail->next=bucketsHead[i]; tail=bucketsTail[i];}
+        }
+        exp*=10;
+    }
+}
+Node* midNode(Node* start, Node* end){
+    if(!start) return nullptr;
+    Node* slow=start; Node* fast=start;
+    while(fast!=end && fast->next!=end){ fast=fast->next->next; slow=slow->next; }
+    return slow;
+}
+Node* binarySearchLinkedList(Node* head,const string& name,int score){
+    Node* start=head;
+    Node* end=nullptr;
+    while(start!=end){
+        Node* mid=midNode(start,end);
+        if(!mid) break;
+        if(mid->score==score){
+            if(mid->name==name) return mid;
+            Node* t=mid->next;
+            while(t!=end){ if(t->score!=score) break; if(t->name==name) return t; t=t->next;}
+            t=head;
+            while(t!=mid){ if(t->score!=score) break; if(t->name==name) return t; t=t->next;}
+            return nullptr;
+        }
+        else if(mid->score<score) start=mid->next;
+        else end=mid;
+    }
+    return nullptr;
+}
+Node* prevNode(Node* head, Node* node){
+    if(!head || head==node) return nullptr;
+    Node* t=head;
+    while(t && t->next!=node) t=t->next;
+    return t;
+}
+void deleteNode(Node*& head, Node* node){
+    if(!node) return;
+    Node* p=prevNode(head,node);
+    if(!p) { head=head->next; delete node; return; }
+    p->next=node->next; delete node;
+}
+int main(){
+    Node* head=nullptr;
+    addNode(head,"Ayan",90);
+    addNode(head,"Zameer",60);
+    addNode(head,"Sara",70);
+    addNode(head,"Sohail",30);
+    addNode(head,"Ahmed",20);
+    radixSortList(head);
+    printList(head);
+    string qname; int qscore;
+    cout<<"Enter name to delete and score:\n";
+    if(cin>>qname>>qscore){
+        Node* found=binarySearchLinkedList(head,qname,qscore);
+        if(found){ deleteNode(head,found); cout<<"Updated list:\n"; printList(head); }
+        else cout<<"Record not found\n";
+    }
+    return 0;
+}
